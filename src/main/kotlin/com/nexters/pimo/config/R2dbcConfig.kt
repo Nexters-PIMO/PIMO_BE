@@ -43,7 +43,7 @@ class R2dbcConfig(
     fun h2DbInitializer(): ConnectionFactoryInitializer {
         val initializer = ConnectionFactoryInitializer()
         val resourceDatabasePopulator = ResourceDatabasePopulator()
-        resourceDatabasePopulator.addScript(ClassPathResource("h2-schema.sql"));
+//        resourceDatabasePopulator.addScript(ClassPathResource("h2-schema.sql"));
 
         initializer.setConnectionFactory(connectionFactory());
         initializer.setDatabasePopulator(resourceDatabasePopulator);
