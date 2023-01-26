@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>소셜 로그인</title>
+  <style>
+    .btn {
+      border-radius: 6px;
+      width: 204px;
+      height: 49px;
+      color: #000;
+      font-size: 15px;
+      line-height: 49px;
+      margin-top: 36px;
+      letter-spacing: -0.16px;
+    }
+    .kakao {
+      background: #FFCD00;
+    }
+  </style>
+  <!-- 카카오js -->
+  <script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
+</head>
+<body>
+<div>
+  <button type="button" class="btn kakao" onclick="kakaoLogin();">
+    카카오 로그인
+  </button>
+</div>
+
+<script type="text/javascript" th:inline="javascript">
+  //<![CDATA[
+  var sdkStateRedirectUri = location.protocol + "//" + location.hostname;
+  if (location.port != "") {
+    sdkStateRedirectUri = sdkStateRedirectUri + ":" + location.port;
+  }
+  sdkStateRedirectUri = sdkStateRedirectUri + "/login/token";
+
+  // 카카오로그인
+  function kakaoLogin() {
+    try{
+      Kakao.init("9991a02c1253223dd0fa649fab9e0df9");
+
+      Kakao.Auth.authorize({
+        reauthenticate: true,
+        state: "kakao",
+        redirectUri: sdkStateRedirectUri
+      });
+    }catch(e) {
+      console.log(e);
+    }
+  }
+
+  //]]>
+</script>
+</body>
+</html>
