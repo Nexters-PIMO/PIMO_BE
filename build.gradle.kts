@@ -47,6 +47,11 @@ dependencies {
     testImplementation("io.cucumber:cucumber-spring:7.5.0")
     testImplementation("io.cucumber:cucumber-junit-platform-engine:7.5.0")
     testImplementation("org.junit.platform:junit-platform-suite-api")
+
+    implementation("com.nimbusds:nimbus-jose-jwt:9.25.6")
+    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 }
 
 tasks.withType<KotlinCompile> {
