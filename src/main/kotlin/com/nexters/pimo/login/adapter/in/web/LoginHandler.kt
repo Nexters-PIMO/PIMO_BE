@@ -2,7 +2,9 @@ package com.nexters.pimo.login.adapter.`in`.web
 
 import com.nexters.pimo.common.dto.BaseResponse
 import com.nexters.pimo.common.exception.BadRequestException
+import com.nexters.pimo.common.utils.AuthorizationUtil
 import com.nexters.pimo.login.application.port.`in`.JwtTokenUseCase
+import com.nexters.pimo.login.application.port.`in`.TokenEncodeUseCase
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -16,18 +18,28 @@ import reactor.core.publisher.Mono
  */
 @Component
 class LoginHandler(
-    private val jwtTokenUseCase: JwtTokenUseCase
+    private val jwtTokenUseCase: JwtTokenUseCase,
+    private val tokenEncodeUseCase: TokenEncodeUseCase
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun loginPage(request: ServerRequest): Mono<ServerResponse> =
         ServerResponse.ok().contentType(MediaType.TEXT_HTML).render("login")
 
-    fun token(request: ServerRequest): Mono<ServerResponse> {
-        val state = request.queryParam("state").orElseThrow { throw BadRequestException("state 정보가 누락되었습니다.") }
-        val code = request.queryParam("code").orElseThrow { throw BadRequestException("code 정보가 누락되었습니다.") }
-
-        return jwtTokenUseCase.createToken(state, code)
+    fun token(request: ServerRequest): Mono<ServerResponse> =
+        jwtTokenUseCase.createToken(
+            request.queryParam("state").orElseThrow { throw BadRequestException("state 정보가 누락되었습니다.") },
+            request.queryParam("code").orElseThrow { throw BadRequestException("code 정보가 누락되었습니다.") })
             .flatMap { BaseResponse().success(it) }
-    }
+
+    fun encode(request: ServerRequest): Mono<ServerResponse> =
+        tokenEncodeUseCase.encode(
+            request.queryParam("state").orElseThrow { throw BadRequestException("state 정보가 누락되었습니다.") },
+            request.queryParam("token").orElseThrow { throw BadRequestException("token 정보가 누락되었습니다.") })
+            .flatMap { BaseResponse().success(it) }
+
+    fun decode(request: ServerRequest): Mono<ServerResponse> =
+        tokenEncodeUseCase.decode(
+            request.queryParam("token").orElseThrow { throw BadRequestException("token 정보가 누락되었습니다.") })
+            .flatMap { BaseResponse().success(it) }
 }

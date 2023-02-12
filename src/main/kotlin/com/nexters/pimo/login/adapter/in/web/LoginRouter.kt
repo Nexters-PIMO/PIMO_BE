@@ -22,6 +22,8 @@ class LoginRouter(
             accept(MediaType.APPLICATION_JSON).nest {
                 GET("/login", loginHandler::loginPage)
                 GET("/login/token", loginHandler::token)
+                GET("/login/encode", loginHandler::encode)
+                GET("/login/decode", loginHandler::decode)
             }
         }
 }
