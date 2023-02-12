@@ -9,4 +9,5 @@ import reactor.core.publisher.Mono
  */
 interface JwtTokenUseCase {
     fun createToken(state: String, code: String): Mono<TokenInfo>
+    fun authToken(state: String, token: String): Mono<String>
 }

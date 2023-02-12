@@ -10,6 +10,7 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -33,8 +34,13 @@ import java.util.*
 class AppleTokenAdapter(
     private val webClientBuilder: WebClient.Builder
 ): JwtTokenPort {
-
     private val log = LoggerFactory.getLogger(this::class.java)
+
+    @Value("\${login.keys.jwt}")
+    private lateinit var secretKey: String
+    @Value("\${login.apis.apple}")
+    private lateinit var url: String
+
     private lateinit var webClient: WebClient
 
     @PostConstruct
@@ -47,7 +53,7 @@ class AppleTokenAdapter(
             .flatMap {
                 val expiredDate = Date.from(LocalDateTime.now().plusDays(30).atZone(ZoneId.systemDefault()).toInstant())
 
-                val accountId = Jwts.parser()
+                val userId = Jwts.parser()
                     .setSigningKey(
                         KeyFactory.getInstance("RSA")
                             .generatePublic(
@@ -69,8 +75,8 @@ class AppleTokenAdapter(
                     .setExpiration(expiredDate)
                     .setAudience("https://appleid.apple.com")
                     .setSubject("auth")
-                    .setClaims(mapOf("accountId" to accountId))
-                    .signWith(SignatureAlgorithm.HS256, Base64.getEncoder().encodeToString("thisistestusersecretkeyprojectnameisnexterspimooooooooooo".toByteArray()))
+                    .setClaims(mapOf("userId" to userId))
+                    .signWith(SignatureAlgorithm.HS256, Base64.getEncoder().encodeToString(secretKey.toByteArray()))
                     .compact()
 
                 return@flatMap Mono.just(TokenInfo(accessToken = token, refreshToken = ""))
@@ -83,7 +89,7 @@ class AppleTokenAdapter(
         val alg = header["alg"].toString()
 
         return webClient.get()
-            .uri("https://appleid.apple.com/auth/keys")
+            .uri(url + "/auth/keys")
             .accept(MediaType.APPLICATION_JSON)
             .retrieve()
             .bodyToMono(ApplePublicKeys::class.java)
@@ -106,4 +112,13 @@ class AppleTokenAdapter(
 
     override fun support(state: String): Boolean =
         state == CommCode.Social.APPLE.code
+
+    override fun authToken(token: String): Mono<String> {
+        return Mono.just(
+            Jwts.parser()
+                .setSigningKey(Base64.getEncoder().encodeToString(secretKey.toByteArray()))
+                .parseClaimsJws(token)
+                .body["userId"].toString()
+        )
+    }
 }

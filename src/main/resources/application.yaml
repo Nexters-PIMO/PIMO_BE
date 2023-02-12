@@ -1,1 +1,9 @@
-
+login:
+  keys:
+    cipher: parkyoonhosecret
+    jwt: thisistestusersecretkeyprojectnameisnexterspimooooooooooo
+    clientId: 9991a02c1253223dd0fa649fab9e0df9
+  apis:
+    kauth: https://kauth.kakao.com
+    kapi: https://kapi.kakao.com
+    apple: https://appleid.apple.com
