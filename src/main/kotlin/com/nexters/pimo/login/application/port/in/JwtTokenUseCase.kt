@@ -1,5 +1,6 @@
 package com.nexters.pimo.login.application.port.`in`
 
+import com.nexters.pimo.common.dto.BaseTokenInfo
 import com.nexters.pimo.login.domain.TokenInfo
 import reactor.core.publisher.Mono
 
@@ -9,5 +10,5 @@ import reactor.core.publisher.Mono
  */
 interface JwtTokenUseCase {
     fun createToken(state: String, code: String): Mono<TokenInfo>
-    fun authToken(state: String, token: String): Mono<String>
+    fun authToken(input: BaseTokenInfo): Mono<String>
 }
