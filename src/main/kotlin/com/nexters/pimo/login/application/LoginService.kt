@@ -30,9 +30,9 @@ class LoginService(
     override fun decode(token: String): Mono<BaseTokenInfo> =
         Mono.just(AuthorizationUtil.getTokenInfo(CipherUtil.decode(token)))
 
-    override fun authToken(state: String, token: String): Mono<String> =
-        findSocialType(state)
-            .authToken(token)
+    override fun authToken(input: BaseTokenInfo): Mono<String> =
+        findSocialType(input.provider)
+            .authToken(input.accessToken)
 
     private fun findSocialType(state: String) =
         jwtTokenPorts.find { it.support(state) }

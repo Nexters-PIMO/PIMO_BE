@@ -2,7 +2,6 @@ package com.nexters.pimo.login.adapter.`in`.web
 
 import com.nexters.pimo.common.dto.BaseResponse
 import com.nexters.pimo.common.exception.BadRequestException
-import com.nexters.pimo.common.utils.AuthorizationUtil
 import com.nexters.pimo.login.application.port.`in`.JwtTokenUseCase
 import com.nexters.pimo.login.application.port.`in`.TokenEncodeUseCase
 import org.slf4j.LoggerFactory
