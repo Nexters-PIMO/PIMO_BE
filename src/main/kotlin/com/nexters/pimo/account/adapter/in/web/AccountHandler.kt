@@ -107,7 +107,7 @@ class AccountHandler(
             "profile" -> saveUserUseCase.updateProfileImgUrl(
                             request.userId(),
                             request.queryParam("profile").orElseThrow { BadRequestException("필수 입력값이 누락되었습니다.") })
-            else -> Mono.error(BadRequestException("유효한 경로가 아닙니다."))
+            else -> throw BadRequestException("유효한 경로가 아닙니다.")
         }
         .flatMap { BaseResponse().success(it) }
 

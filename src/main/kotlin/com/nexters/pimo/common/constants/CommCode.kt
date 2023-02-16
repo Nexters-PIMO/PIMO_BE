@@ -8,13 +8,16 @@ import com.nexters.pimo.common.exception.BadRequestException
  */
 class CommCode {
     companion object {
+        const val DEFAULT_PAGING_START: String = "0"
+        const val DEFAULT_PAGING_SIZE: String = "10"
+        const val DEFAULT_SORT_OPTION: String = "0"
+
         fun findPrefix(type: String): String {
             for(item in Social.values()) {
                 if(item.code == type) {
                     return item.prefix
                 }
             }
-
             throw BadRequestException("지원하지 않는 소셜로그인입니다.")
         }
     }
