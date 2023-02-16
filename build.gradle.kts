@@ -6,6 +6,7 @@ plugins {
     kotlin("jvm") version "1.7.22"
     kotlin("plugin.spring") version "1.7.22"
     kotlin("plugin.jpa") version "1.7.22"
+    kotlin("kapt") version "1.7.22"
 }
 
 group = "com.nexters"
@@ -52,6 +53,9 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
+
+    implementation("com.infobip:infobip-spring-data-r2dbc-querydsl-boot-starter:6.2.0")
+    kapt("com.infobip:infobip-spring-data-jdbc-annotation-processor-common:6.2.0")
 }
 
 tasks.withType<KotlinCompile> {
