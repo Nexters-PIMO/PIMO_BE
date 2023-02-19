@@ -10,6 +10,7 @@ import com.nexters.pimo.follow.application.dto.FollowCntDto
 import com.nexters.pimo.follow.application.port.`in`.DeleteUseCase
 import com.nexters.pimo.follow.application.port.`in`.FindUseCase
 import com.nexters.pimo.follow.application.port.`in`.RegisterUseCase
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse

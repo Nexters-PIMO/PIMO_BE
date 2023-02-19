@@ -2,10 +2,11 @@ package com.nexters.pimo.login.adapter.out
 
 import com.nexters.pimo.common.constants.CommCode
 import com.nexters.pimo.common.exception.BadRequestException
+import com.nexters.pimo.common.exception.ThirdPartyServerException
+import com.nexters.pimo.common.exception.UnAuthorizationException
 import com.nexters.pimo.login.adapter.out.dto.KakaoTokenInfo
 import com.nexters.pimo.login.application.port.out.JwtTokenPort
 import com.nexters.pimo.login.domain.TokenInfo
-import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
@@ -23,7 +24,7 @@ import reactor.core.publisher.Mono
  */
 @Component
 class KakaoTokenAdapter(
-    private val webClientBuilder: WebClient.Builder
+    private val defaultWebClient: WebClient
 ): JwtTokenPort {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -33,13 +34,6 @@ class KakaoTokenAdapter(
     private lateinit var kauthUrl: String
     @Value("\${login.apis.kapi}")
     private lateinit var kapiUrl: String
-
-    private lateinit var webClient: WebClient
-
-    @PostConstruct
-    fun initWebClient() {
-        this.webClient = webClientBuilder.build()
-    }
 
     override fun createToken(code: String): Mono<TokenInfo> {
         try{
@@ -53,11 +47,18 @@ class KakaoTokenAdapter(
                 .queryParams(params)
                 .build(false)
 
-            return webClient.get()
+            return defaultWebClient.get()
                 .uri(uriComponents.toUri())
                 .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(TokenInfo::class.java)
+                .exchangeToMono {
+                    if(it.statusCode().is2xxSuccessful) {
+                        return@exchangeToMono it.bodyToMono(TokenInfo::class.java)
+                    }else if(it.statusCode().is4xxClientError) {
+                        return@exchangeToMono throw BadRequestException("유효한 인가코드가 아닙니다.")
+                    }else{
+                        return@exchangeToMono throw ThirdPartyServerException("일시적으로 카카오서버를 이용할 수 없습니다.")
+                    }
+                }
                 .log()
         }catch (e: Exception) {
             throw e
@@ -74,12 +75,19 @@ class KakaoTokenAdapter(
                 .build(false)
 
             log.info(" >>> [authToken] request - token: $token, url: ${uriComponents.toUri()}")
-            return webClient.get()
+            return defaultWebClient.get()
                 .uri(uriComponents.toUri())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
                 .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(KakaoTokenInfo::class.java)
+                .exchangeToMono {
+                    if(it.statusCode().is2xxSuccessful) {
+                        return@exchangeToMono it.bodyToMono(KakaoTokenInfo::class.java)
+                    }else if(it.statusCode().is4xxClientError) {
+                        return@exchangeToMono throw BadRequestException("유효한 토큰이 아닙니다.")
+                    }else{
+                        return@exchangeToMono throw ThirdPartyServerException("일시적으로 카카오서버를 이용할 수 없습니다.")
+                    }
+                }
                 .log()
                 .map { toUserId(it) }
         }catch (e: Throwable){
@@ -89,7 +97,7 @@ class KakaoTokenAdapter(
 
     private fun toUserId(response: KakaoTokenInfo): String {
         if(response.code != null || response.msg != null) {
-            throw BadRequestException("유효한 토큰이 아닙니다. - code: ${response.code}, msg: ${response.msg}")
+            throw UnAuthorizationException("유효한 토큰이 아닙니다. - code: ${response.code}, msg: ${response.msg}")
         }
         return response.id
     }
