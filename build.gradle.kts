@@ -3,13 +3,14 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "3.0.1"
     id("io.spring.dependency-management") version "1.1.0"
+    id("org.springdoc.openapi-gradle-plugin") version "1.6.0"
     kotlin("jvm") version "1.7.22"
     kotlin("plugin.spring") version "1.7.22"
     kotlin("plugin.jpa") version "1.7.22"
     kotlin("kapt") version "1.7.22"
 }
 
-group = "com.nexters"
+group = "pimo"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
@@ -54,8 +55,11 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
-    implementation("com.infobip:infobip-spring-data-r2dbc-querydsl-boot-starter:6.2.0")
-    kapt("com.infobip:infobip-spring-data-jdbc-annotation-processor-common:6.2.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.0.2")      // spring boot 3.0에서 쓰려면 무조건 "2.0.2"버전으로 해야됨!!!!
+}
+
+tasks.getByName<Jar>("jar") {
+    enabled = false
 }
 
 tasks.withType<KotlinCompile> {

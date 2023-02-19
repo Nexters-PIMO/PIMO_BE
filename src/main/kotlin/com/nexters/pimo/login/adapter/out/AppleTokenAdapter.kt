@@ -3,21 +3,17 @@ package com.nexters.pimo.login.adapter.out
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nexters.pimo.common.constants.CommCode
 import com.nexters.pimo.common.exception.BadRequestException
-import com.nexters.pimo.common.exception.NotFoundDataException
+import com.nexters.pimo.common.exception.ThirdPartyServerException
 import com.nexters.pimo.login.application.port.out.JwtTokenPort
 import com.nexters.pimo.login.domain.TokenInfo
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
-import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 import java.io.Serializable
 import java.math.BigInteger
 import java.security.KeyFactory
@@ -32,7 +28,7 @@ import java.util.*
  */
 @Component
 class AppleTokenAdapter(
-    private val webClientBuilder: WebClient.Builder
+    private val defaultWebClient: WebClient
 ): JwtTokenPort {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -40,13 +36,6 @@ class AppleTokenAdapter(
     private lateinit var secretKey: String
     @Value("\${login.apis.apple}")
     private lateinit var url: String
-
-    private lateinit var webClient: WebClient
-
-    @PostConstruct
-    fun initWebClient() {
-        this.webClient = webClientBuilder.build()
-    }
 
     override fun createToken(code: String): Mono<TokenInfo> =
         findBy(code)
@@ -88,11 +77,19 @@ class AppleTokenAdapter(
         val kid = header["kid"].toString()
         val alg = header["alg"].toString()
 
-        return webClient.get()
+        return defaultWebClient.get()
             .uri(url + "/auth/keys")
             .accept(MediaType.APPLICATION_JSON)
-            .retrieve()
-            .bodyToMono(ApplePublicKeys::class.java)
+            .exchangeToMono {
+                if(it.statusCode().is2xxSuccessful) {
+                    return@exchangeToMono it.bodyToMono(ApplePublicKeys::class.java)
+                }else if(it.statusCode().is4xxClientError) {
+                    return@exchangeToMono throw BadRequestException("애플 공개키 정보를 가져올 수 없습니다.")
+                }else{
+                    return@exchangeToMono throw ThirdPartyServerException("일시적으로 애플서버를 이용할 수 없습니다.")
+                }
+            }
+            .log()
             .map { toMatchedKey(it.keys, kid, alg) }
     }
 

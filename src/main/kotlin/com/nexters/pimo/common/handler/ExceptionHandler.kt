@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.nexters.pimo.common.dto.BaseResponse
 import com.nexters.pimo.common.exception.BadRequestException
 import com.nexters.pimo.common.exception.NotFoundDataException
+import com.nexters.pimo.common.exception.ThirdPartyServerException
+import com.nexters.pimo.common.exception.UnAuthorizationException
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler
 import org.springframework.core.annotation.Order
@@ -49,6 +51,17 @@ class ExceptionHandler: ErrorWebExceptionHandler {
                     )
                 })
             }
+            is UnAuthorizationException -> {
+                log.warn(" >>> [handle] UnAuthorizationException occurs - message: {}", ex.message)
+                return exchange.response.writeWith(Mono.fromSupplier {
+                    val bufferFactory = exchange.response.bufferFactory()
+                    exchange.response.statusCode = HttpStatus.UNAUTHORIZED
+                    exchange.response.headers.contentType = MediaType.APPLICATION_JSON
+                    return@fromSupplier bufferFactory.wrap(
+                        objectMapper.writeValueAsBytes(BaseResponse(ex.message, HttpStatus.UNAUTHORIZED, null))
+                    )
+                })
+            }
             is IllegalArgumentException -> {
                 log.warn(" >>> [handle] IllegalArgumentException occurs - message: {}", ex.message)
                 return exchange.response.writeWith(Mono.fromSupplier {
@@ -57,6 +70,17 @@ class ExceptionHandler: ErrorWebExceptionHandler {
                     exchange.response.headers.contentType = MediaType.APPLICATION_JSON
                     return@fromSupplier bufferFactory.wrap(
                         objectMapper.writeValueAsBytes(BaseResponse(ex.message, HttpStatus.BAD_REQUEST, null))
+                    )
+                })
+            }
+            is ThirdPartyServerException -> {
+                log.warn(" >>> [handle] ThirdPartyServerException occurs - message: {}", ex.message)
+                return exchange.response.writeWith(Mono.fromSupplier {
+                    val bufferFactory = exchange.response.bufferFactory()
+                    exchange.response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR
+                    exchange.response.headers.contentType = MediaType.APPLICATION_JSON
+                    return@fromSupplier bufferFactory.wrap(
+                        objectMapper.writeValueAsBytes(BaseResponse(ex.message, HttpStatus.INTERNAL_SERVER_ERROR, null))
                     )
                 })
             }

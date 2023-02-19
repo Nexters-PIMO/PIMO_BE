@@ -3,6 +3,7 @@ package com.nexters.pimo.common.filter
 import com.nexters.pimo.common.constants.CommCode
 import com.nexters.pimo.common.dto.BaseTokenInfo
 import com.nexters.pimo.common.exception.BadRequestException
+import com.nexters.pimo.common.exception.UnAuthorizationException
 import com.nexters.pimo.common.utils.CipherUtil
 import com.nexters.pimo.login.application.port.`in`.JwtTokenUseCase
 import org.springframework.http.HttpHeaders
@@ -27,12 +28,19 @@ class AuthorizationFilter(
 ): WebFilter {
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
         val path = exchange.request.path.pathWithinApplication().value()
+
+        // 로그인 관련 API 제외처리
         if(Regex("/login*") in path) {
             return chain.filter(exchange)
         }
 
+        // Swagger 관련 API 제외처리
+        if(Regex("/swagger*") in path || Regex("/v3/api-docs*") in path) {
+            return chain.filter(exchange)
+        }
+
         val authorization = exchange.request.headers.getFirst(HttpHeaders.AUTHORIZATION)
-            ?: throw BadRequestException("Authorization 헤더가 존재하지 않습니다.")
+            ?: throw UnAuthorizationException("Authorization 헤더가 존재하지 않습니다.")
 
         if(DEV_TOKEN_PREFIX in authorization) {
             val userId = authorization.substringAfter(DEV_TOKEN_PREFIX)
@@ -50,7 +58,7 @@ class AuthorizationFilter(
                     accessToken.startsWith(CommCode.Social.APPLE.prefix) -> {
                         BaseTokenInfo(provider = CommCode.Social.APPLE.code, accessToken = accessToken.substring(1))
                     }
-                    else -> throw BadRequestException("유효한 토큰이 아닙니다.")
+                    else -> throw UnAuthorizationException("유효한 토큰이 아닙니다.")
                 }
 
             return jwtTokenUseCase.authToken(tokenInfo)
@@ -60,7 +68,7 @@ class AuthorizationFilter(
                         }
         }
 
-        throw BadRequestException("필수값을 누락하였습니다.")
+        throw UnAuthorizationException("필수값을 누락하였습니다.")
     }
 }
 

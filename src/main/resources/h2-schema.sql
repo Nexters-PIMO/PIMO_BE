@@ -1,3 +1,4 @@
+-- 사용자 계정관리 테이블
 create table if not exists UserTB
 (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -20,3 +21,23 @@ comment on column UserTB.createdAt is '생성 일자';
 
 insert into UserTB (userId, nickName, profileImgUrl, status) values ('admin1', 'admin1', 'admin1', '0');
 insert into UserTB (userId, nickName, profileImgUrl, status) values ('admin2', 'admin2', 'admin2', '0');
+insert into UserTB (userId, nickName, profileImgUrl, status) values ('admin3', 'admin3', 'admin3', '0');
+insert into UserTB (userId, nickName, profileImgUrl, status) values ('admin4', 'admin4', 'admin4', '0');
+insert into UserTB (userId, nickName, profileImgUrl, status) values ('admin5', 'admin5', 'admin5', '0');
+
+
+-- 친구관리 테이블
+create table if not exists FollowTB
+(
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    followerUserId varchar(127) not null,
+    followerNickName varchar(127) not null,
+    followeeUserId varchar(127) not null,
+    followeeNickName varchar(127) not null,
+    createdAt timestamp not null default now(),
+    primary key (Id)
+);
+
+insert into FollowTB(followerUserId, followerNickName, followeeUserId, followeeNickName) values ('admin1', 'admin1', 'admin2', 'admin2');
+insert into FollowTB(followerUserId, followerNickName, followeeUserId, followeeNickName) values ('admin1', 'admin1', 'admin3', 'admin3');
+insert into FollowTB(followerUserId, followerNickName, followeeUserId, followeeNickName) values ('admin1', 'admin1', 'admin4', 'admin4');
