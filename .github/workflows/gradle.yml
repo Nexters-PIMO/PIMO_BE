@@ -43,7 +43,6 @@ jobs:
         shell: bash
 
       - name: prod Docker build & push
-        if: contains(github.ref, 'master')
         run: |
           docker login ${{ secrets.NCP_DOCKER_REGISTRY }} -u ${{ secrets.NCP_ACCESS_KEY }} -p ${{ secrets.NCP_SECRET_KEY }}
           docker build -f Dockerfile -t ${{ secrets.NCP_DOCKER_REGISTRY }}/pimo-prod .
@@ -52,7 +51,6 @@ jobs:
       - name: Deploy to Prod
         uses: appleboy/ssh-action@master
         id: deploy-prod
-        if: contains(github.ref, 'master')
         with:
           host: ${{ secrets.NCP_PROD_SERVER_IP }}
           username: ${{ secrets.NCP_PROD_SERVER_USER }}
