@@ -39,6 +39,11 @@ class AuthorizationFilter(
             return chain.filter(exchange)
         }
 
+        // Actuator (Health check) 관련 API 제외 처리
+        if(Regex("/actuator*") in path) {
+            return chain.filter(exchange)
+        }
+
         val authorization = exchange.request.headers.getFirst(HttpHeaders.AUTHORIZATION)
             ?: throw UnAuthorizationException("Authorization 헤더가 존재하지 않습니다.")
 
