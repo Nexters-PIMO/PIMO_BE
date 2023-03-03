@@ -5,7 +5,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 interface FindUseCase {
-    fun findById(feedId: Long): Mono<FeedDto>
+    fun findById(feedId: Long, userId: String): Mono<FeedDto>
     fun findByUserId(userId: String): Flux<FeedDto>
     fun findHomeByUserId(userId: String): Flux<FeedDto>
 }

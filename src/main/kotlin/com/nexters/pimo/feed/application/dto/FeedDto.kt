@@ -10,5 +10,5 @@ data class FeedDto(
     val createdAt: String,
     val clapCount: Int,
     val clapped: Boolean,
-    val contents: List<Content>,
+    val contents: List<ContentDto>,
 ): Serializable
