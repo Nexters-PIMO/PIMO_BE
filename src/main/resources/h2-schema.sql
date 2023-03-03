@@ -18,6 +18,7 @@ create table if not exists FeedTB
     status varchar(31) check(STATUS in ('0', '1', '2')),
     updatedAt timestamp default now(),
     createdAt timestamp not null default now(),
+    deletedAt timestamp null,
     primary key (id)
 );
 
@@ -25,17 +26,26 @@ create table if not exists FeedTB
 create table if not exists ContentTB
 (
     id BIGINT NOT NULL AUTO_INCREMENT,
-    userId varchar(127) not null,
     feedId int not null,
-    `text` varchar(1023) not null,
+    caption varchar(1023) not null,
     url varchar(1023) not null,
     status varchar(31) check(STATUS in ('0', '1', '2')),
     updatedAt timestamp default now(),
     createdAt timestamp not null default now(),
+    deletedAt timestamp null,
     primary key (id)
 );
 
 create table if not exists ClapTB
+(
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    userId varchar(127) not null,
+    feedId int not null,
+    createdAt timestamp not null default now(),
+    primary key (id)
+);
+
+create table if not exists ReportTB
 (
     id BIGINT NOT NULL AUTO_INCREMENT,
     userId varchar(127) not null,
@@ -76,3 +86,30 @@ create table if not exists FollowTB
 insert into FollowTB(followerUserId, followerNickName, followeeUserId, followeeNickName) values ('admin1', 'admin1', 'admin2', 'admin2');
 insert into FollowTB(followerUserId, followerNickName, followeeUserId, followeeNickName) values ('admin1', 'admin1', 'admin3', 'admin3');
 insert into FollowTB(followerUserId, followerNickName, followeeUserId, followeeNickName) values ('admin1', 'admin1', 'admin4', 'admin4');
+
+insert into FeedTB(userId, status)
+values ('admin1', '0'),
+       ('admin1', '0'),
+       ('admin1', '0'),
+       ('admin1', '0'),
+       ('admin1', '0');
+
+insert into ContentTB(feedId, caption, url, status)
+values (1, 'text1', 'url1-1', '0'),
+       (1, 'text1', 'url1-2', '0'),
+       (2, 'text2', 'url2-1', '0'),
+       (2, 'text2', 'url2-2', '0'),
+       (3, 'text3', 'url3-1', '0'),
+       (3, 'text3', 'url3-3', '0'),
+       (4, 'text4', 'url4-1', '0'),
+       (4, 'text4', 'url4-2', '0'),
+       (5, 'text5', 'url5-1', '0'),
+       (5, 'text5', 'url5-2', '0');
+
+insert into ClapTB(userId, feedId) values ( 'admin1', 1 ), ( 'admin1', 1 ), ( 'admin1', 1 ), ( 'admin1', 1 ), ( 'admin1', 1 );
+
+select * from UserTB;
+select * from FollowTB;
+select * from FeedTB;
+select * from ContentTB;
+select * from ClapTB;
