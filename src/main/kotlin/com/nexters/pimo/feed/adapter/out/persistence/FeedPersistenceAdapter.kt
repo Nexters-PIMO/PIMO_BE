@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 
 @Repository
 class FeedPersistenceAdapter(
@@ -24,63 +25,79 @@ class FeedPersistenceAdapter(
     private val reportRepository: ReportRepository,
     private val contentRepository: ContentRepository,
 ) : SavePort, FindPort, DeletePort {
-    override fun findById(feedId: Long): Mono<FeedDto> =
-        feedRepository.findFeedByIdAndStatus(feedId, "0")
-            .map { it.toDto() }
-//            .map { objectMapper.convertValue(it.toDto(), FeedDto::class.java) }
+    override fun findById(feedId: Long, userId: String): Mono<FeedDto> =
+        feedRepository.findByIdWithContentAndClap(feedId)
+            .map { it.toDto(userId) }
 
     override fun findByUserId(userId: String): Flux<FeedDto> =
-        feedRepository.findAllByUserIdAndStatus(userId, "0")
-            .map { it.toDto() }
-
-    override fun findClapByFeedId(feedId: Long): Flux<Clap> =
-        clapRepository.findAllByFeedId(feedId)
+        feedRepository.findAllByUserIdWithContentAndClap(userId)
+            .map { it.toDto(userId) }
 
     override fun findHomeByUserId(userId: String): Flux<FeedDto> =
-        feedRepository.findHomeByUserId(userId)
-            .map { it.toDto() }
+        feedRepository.findHomeByUserIdWithContentAndClap(userId)
+            .map { it.toDto(userId) }
 
-    override fun save(input: FeedInput): Mono<FeedDto> =
-        feedRepository.save(
-            Feed(
-                userId = input.userId,
-            )
-        ).map {
-            val contentsForInput = input.contents.map { content ->
-                Content(
-                    feedId = it.id,
-                    caption = content.caption,
-                    url = content.url
-                )
-            }
-            contentRepository.saveAll(Flux.fromIterable(contentsForInput)).subscribe()
-            it.toDto()
-        }
-
-    override fun update(feedId: Long, contents: List<ContentInput>): Mono<FeedDto> =
-        feedRepository.findById(feedId)
-            .map {
-                contentRepository.deleteAllByFeedId(feedId)
-                val contents = contents.map { content ->
+    override fun save(input: FeedInput): Mono<Boolean> =
+        feedRepository.saveFeed(input.userId)
+            .flatMap {
+                println(it)
+                contentRepository.saveAll(Flux.fromIterable(input.contents.map { content ->
                     Content(
                         feedId = it.id,
                         caption = content.caption,
                         url = content.url
                     )
-                }
-                val result: List<Content> = listOf()
-                contentRepository.saveAll(contents).map { content -> result.plus(content) }
-                it.toDto()
-            }
+                })).then()
+            }.flatMap { Mono.just(true) }
+        //        findById(1, "admin1")
+//            .flatMap {
+//                println(it)
+//                Mono.just(true)
+//            }
+//        feedRepository.save(
+//            Feed(
+//                userId = input.userId,
+//            )
+//        )
+//            .flatMap {
+//            println(it)
+//            Mono.just(true)
+//////            val contentsForInput = input.contents.map { content ->
+//////                Content(
+//////                    feedId = it.id,
+//////                    caption = content.caption,
+//////                    url = content.url
+//////                )
+//////            }
+////            println(it)
+////            contentRepository.saveAll(input.contents.map { content ->
+////                Content(
+////                    feedId = it.id,
+////                    caption = content.caption,
+////                    url = content.url
+////                )
+////            }).last().flatMap{ Mono.just(true) }
+//        }
+
+    override fun update(feedId: Long, contents: List<ContentInput>, userId: String): Mono<FeedDto> =
+        contentRepository.deleteAllByFeedId(feedId).flatMap {
+            contentRepository.saveAll(contents.map { content ->
+                Content(
+                    feedId = feedId,
+                    caption = content.caption,
+                    url = content.url
+                )
+            }).last()
+        }.flatMap { findById(feedId, userId) }
 
     override fun deleteById(feedId: Long): Mono<Boolean> =
-        feedRepository.findByIdAndStatus(feedId, "0")
+        feedRepository.findByIdWithContentAndClap(feedId)
             .switchIfEmpty { throw BadRequestException("피드가 존재하지 않습니다.") }
             .flatMap { feedRepository.deleteById(feedId) }
             .flatMap { Mono.just(true) }
 
     override fun clap(feedId: Long, userId: String): Mono<Boolean> =
-        feedRepository.findByIdAndStatus(feedId, "0")
+        feedRepository.findByIdWithContentAndClap(feedId)
             .switchIfEmpty { throw BadRequestException("피드가 존재하지 않습니다.") }
             .flatMap {
                 clapRepository.save(
@@ -93,7 +110,7 @@ class FeedPersistenceAdapter(
             .flatMap { Mono.just(true) }
 
     override fun report(feedId: Long, userId: String): Mono<Boolean> =
-        feedRepository.findByIdAndStatus(feedId, "0")
+        feedRepository.findByIdWithContentAndClap(feedId)
             .switchIfEmpty { throw BadRequestException("피드가 존재하지 않습니다.") }
             .flatMap {
                 reportRepository.save(

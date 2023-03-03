@@ -24,7 +24,8 @@ class FeedHandler(
 
     fun findById(request: ServerRequest): Mono<ServerResponse> =
         findUseCase.findById(
-            request.pathVariable("feedId").toLong()
+            request.pathVariable("feedId").toLong(),
+            request.userId()
         ).flatMap {
             BaseResponse().success(it)
         }
@@ -43,7 +44,7 @@ class FeedHandler(
     fun update(request: ServerRequest): Mono<ServerResponse> =
         request.bodyToFlux(ContentInput::class.java)
             .collectList()
-            .flatMap { saveUseCase.update(request.pathVariable("feedId").toLong(), it) }
+            .flatMap { saveUseCase.update(request.pathVariable("feedId").toLong(), it, request.userId()) }
             .flatMap { BaseResponse().success(it) }
 
     fun home(request: ServerRequest): Mono<ServerResponse> =

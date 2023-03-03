@@ -22,8 +22,8 @@ class FeedService(
     override fun deleteById(feedId: Long): Mono<Boolean> =
         deletePort.deleteById(feedId)
 
-    override fun findById(feedId: Long): Mono<FeedDto> =
-        findPort.findById(feedId)
+    override fun findById(feedId: Long, userId: String): Mono<FeedDto> =
+        findPort.findById(feedId, userId)
 
 
     override fun findByUserId(userId: String): Flux<FeedDto> =
@@ -34,12 +34,12 @@ class FeedService(
         findPort.findHomeByUserId(userId)
 
 
-    override fun save(input: FeedInput): Mono<FeedDto> =
+    override fun save(input: FeedInput): Mono<Boolean> =
         savePort.save(input)
 
 
-    override fun update(feedId: Long, contents: List<ContentInput>): Mono<FeedDto> =
-        savePort.update(feedId, contents)
+    override fun update(feedId: Long, contents: List<ContentInput>, userId: String): Mono<FeedDto> =
+        savePort.update(feedId, contents, userId)
 
 
     override fun clap(feedId: Long, userId: String): Mono<Boolean> =

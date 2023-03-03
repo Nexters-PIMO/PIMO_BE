@@ -1,6 +1,7 @@
 package com.nexters.pimo.feed.domain
 
 import com.nexters.pimo.common.constants.CommCode
+import com.nexters.pimo.feed.application.dto.ContentDto
 import jakarta.persistence.*
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
@@ -9,10 +10,6 @@ import java.time.LocalDateTime
 
 @Table(name = "ContentTB")
 data class Content(
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "feedId", nullable = false)
-//    val feed: Feed,
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
@@ -37,4 +34,12 @@ data class Content(
 
 //    @Column("deletedAt")
 //    val deletedAt: LocalDateTime? = null
-)
+) {
+    fun toDto(): ContentDto {
+        return ContentDto(
+            id = id,
+            caption = caption,
+            url = url
+        )
+    }
+}
