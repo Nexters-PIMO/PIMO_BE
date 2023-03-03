@@ -20,7 +20,7 @@ class FeedRouter (
                 // 피드 1건 조회
                 GET("/users/{userId}/feeds/{feedId}", feedHandler::findById)
                 // 피드 홈 조회
-                GET("/users/me/home", feedHandler::home)
+                GET("/users/{userId}/home", feedHandler::home)
                 // 피드 저장
                 POST("/users/{userId}/feeds", feedHandler::save)
                 // 피드 수정
