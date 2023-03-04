@@ -16,7 +16,7 @@ interface CustomFeedRepository {
 
     fun findHomeByUserIdWithContentAndClap(userId: String): Flux<Feed>
 
-    fun saveFeed(userId: String): Mono<Feed>
+    fun saveFeed(userId: String): Mono<Long>
 }
 
 @Repository
@@ -30,37 +30,37 @@ class CustomFeedRepositoryImpl(
                 val feedId = list[0]["id"] as Long
                 val userId = list[0]["userId"] as String
                 val contents = list.stream().map {
-                    val id = it["contentId"] as Long
-                    val feedId = it["feedId"] as Int
-                    val caption = it["caption"] as String
-                    val url = it["url"] as String
-                    val status = it["contentStatus"] as String
-//                    println("id: $id, feedId: $feedId, caption: $caption, url: $url, status: $status")
-                    Content(
-                        id = id,
-                        caption = caption,
-                        url = url,
-                        status = status,
-                        feedId = feedId.toLong()
-                    )
-                }.collect(Collectors.toList()).distinctBy{ it.id }
-//                println("feedId: $feedId, contents.count(): ${contents.count()} contents.distinct(): ${contents.distinct()}")
-                val claps = list.stream().map {
                     try {
-                        val id = it["clapId"] as Long
-                        val userId = it["userId"] as String
-                        val feedId = it["feedId"] as Int
-//                        println("id: $id, userId: $userId, feedId: $feedId")
-                        Clap(
+                        val id = it["contentId"] as Long
+                        val feedIdForContent = it["feedId"] as Int
+                        val caption = it["caption"] as String
+                        val url = it["url"] as String
+                        val status = it["contentStatus"] as String
+                        Content(
                             id = id,
-                            feedId = feedId.toLong(),
-                            userId = userId
+                            caption = caption,
+                            url = url,
+                            status = status,
+                            feedId = feedIdForContent.toLong()
                         )
                     } catch (e: Exception) {
                         null
                     }
                 }.collect(Collectors.toList()).filterNotNull().distinctBy{ it.id }
-//                println("feedId: $feedId, claps.count(): ${claps.count()}, claps: $claps")
+                val claps = list.stream().map {
+                    try {
+                        val id = it["clapId"] as Long
+                        val userIdForClap = it["userId"]
+                        val feedIdForClap = it["feedId"] as Int
+                        Clap(
+                            id = id,
+                            feedId = feedIdForClap.toLong(),
+                            userId = userIdForClap.toString()
+                        )
+                    } catch (e: Exception) {
+                        null
+                    }
+                }.collect(Collectors.toList()).filterNotNull().distinctBy{ it.id }
                 Feed(id = feedId, userId = userId, contents = contents, claps = claps)
             }
             return feedMapper
@@ -98,7 +98,7 @@ class CustomFeedRepositoryImpl(
             .all()
             .bufferUntilChanged { it -> it["id"] }
             .map(feedMapper)
-            .last()
+            .singleOrEmpty()
     }
 
     override fun findHomeByUserIdWithContentAndClap(userId: String): Flux<Feed> {
@@ -135,14 +135,14 @@ class CustomFeedRepositoryImpl(
             .map(feedMapper)
     }
 
-    override fun saveFeed(userId: String): Mono<Feed> {
+    override fun saveFeed(userId: String): Mono<Long> {
         val query = "INSERT INTO FeedTB(userId, status) VALUES(:userId, '0');"
         return client.sql(query)
+            .filter {statement, _ -> statement.returnGeneratedValues("id").execute()}
             .bind("userId", userId)
             .fetch()
             .first()
-//            .map{ findByIdWithContentAndClap(it.get("id")) }
-            .flatMap { findByIdWithContentAndClap(it["id"] as Long) }
+            .map { it["id"] as Long }
     }
 
 }

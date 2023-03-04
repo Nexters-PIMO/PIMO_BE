@@ -1,6 +1,5 @@
 package com.nexters.pimo.feed.adapter.out.persistence
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.nexters.pimo.common.exception.BadRequestException
 import com.nexters.pimo.feed.adapter.`in`.web.dto.ContentInput
 import com.nexters.pimo.feed.adapter.`in`.web.dto.FeedInput
@@ -10,13 +9,12 @@ import com.nexters.pimo.feed.application.port.out.FindPort
 import com.nexters.pimo.feed.application.port.out.SavePort
 import com.nexters.pimo.feed.domain.Clap
 import com.nexters.pimo.feed.domain.Content
-import com.nexters.pimo.feed.domain.Feed
 import com.nexters.pimo.feed.domain.Report
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
-import reactor.kotlin.core.publisher.toMono
 
 @Repository
 class FeedPersistenceAdapter(
@@ -38,46 +36,19 @@ class FeedPersistenceAdapter(
             .map { it.toDto(userId) }
 
     override fun save(input: FeedInput): Mono<Boolean> =
-        feedRepository.saveFeed(input.userId)
-            .flatMap {
-                println(it)
-                contentRepository.saveAll(Flux.fromIterable(input.contents.map { content ->
-                    Content(
-                        feedId = it.id,
-                        caption = content.caption,
-                        url = content.url
-                    )
-                })).then()
-            }.flatMap { Mono.just(true) }
-        //        findById(1, "admin1")
-//            .flatMap {
-//                println(it)
-//                Mono.just(true)
-//            }
-//        feedRepository.save(
-//            Feed(
-//                userId = input.userId,
-//            )
-//        )
-//            .flatMap {
-//            println(it)
-//            Mono.just(true)
-//////            val contentsForInput = input.contents.map { content ->
-//////                Content(
-//////                    feedId = it.id,
-//////                    caption = content.caption,
-//////                    url = content.url
-//////                )
-//////            }
-////            println(it)
-////            contentRepository.saveAll(input.contents.map { content ->
-////                Content(
-////                    feedId = it.id,
-////                    caption = content.caption,
-////                    url = content.url
-////                )
-////            }).last().flatMap{ Mono.just(true) }
-//        }
+        feedRepository.saveFeed(input.userId).map {
+            input.contents.map { content ->
+                Content(
+//                    feedId = it["id"] as Long,
+                    feedId = it,
+                    caption = content.caption,
+                    url = content.url
+                )
+            }
+        }
+        .publishOn(Schedulers.boundedElastic())
+        .map { contentRepository.saveAll(it).subscribe() }
+        .flatMap { Mono.just(true) }
 
     override fun update(feedId: Long, contents: List<ContentInput>, userId: String): Mono<FeedDto> =
         contentRepository.deleteAllByFeedId(feedId).flatMap {
@@ -93,8 +64,8 @@ class FeedPersistenceAdapter(
     override fun deleteById(feedId: Long): Mono<Boolean> =
         feedRepository.findByIdWithContentAndClap(feedId)
             .switchIfEmpty { throw BadRequestException("피드가 존재하지 않습니다.") }
-            .flatMap { feedRepository.deleteById(feedId) }
-            .flatMap { Mono.just(true) }
+            .flatMap { feedRepository.deleteByIdAndStatus(feedId, "0") }
+//            .flatMap { Mono.just(true) }
 
     override fun clap(feedId: Long, userId: String): Mono<Boolean> =
         feedRepository.findByIdWithContentAndClap(feedId)
