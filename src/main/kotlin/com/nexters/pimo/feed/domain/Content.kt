@@ -1,6 +1,5 @@
 package com.nexters.pimo.feed.domain
 
-import com.nexters.pimo.common.constants.CommCode
 import com.nexters.pimo.feed.application.dto.ContentDto
 import jakarta.persistence.*
 import org.springframework.data.annotation.Id
@@ -32,8 +31,6 @@ data class Content(
     @Column("updatedAt")
     val updatedAt: LocalDateTime = LocalDateTime.now(),
 
-//    @Column("deletedAt")
-//    val deletedAt: LocalDateTime? = null
 ) {
     fun toDto(): ContentDto {
         return ContentDto(

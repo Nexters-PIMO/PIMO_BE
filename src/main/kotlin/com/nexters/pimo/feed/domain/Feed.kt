@@ -1,7 +1,5 @@
 package com.nexters.pimo.feed.domain
 
-import com.nexters.pimo.common.constants.CommCode
-import com.nexters.pimo.feed.adapter.`in`.web.dto.ContentInput
 import com.nexters.pimo.feed.application.dto.FeedDto
 import jakarta.persistence.*
 import org.springframework.data.annotation.Id
