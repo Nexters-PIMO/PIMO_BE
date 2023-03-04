@@ -18,9 +18,6 @@ class FeedHandler(
     private val findUseCase: FindUseCase,
     private val deleteUseCase: DeleteUseCase
 ) {
-//    fun findById(request: ServerRequest): Mono<ServerResponse> =
-//        findUseCase.findById(request.pathVariable("feedId").orElseThrow { throw BadRequestException("잘못된 요청입니다.") }.toLong())
-//            .flatMap{BaseResponse().success(it)}
 
     fun findById(request: ServerRequest): Mono<ServerResponse> =
         findUseCase.findById(

@@ -39,7 +39,6 @@ class FeedPersistenceAdapter(
         feedRepository.saveFeed(input.userId).map {
             input.contents.map { content ->
                 Content(
-//                    feedId = it["id"] as Long,
                     feedId = it,
                     caption = content.caption,
                     url = content.url
@@ -65,7 +64,6 @@ class FeedPersistenceAdapter(
         feedRepository.findByIdWithContentAndClap(feedId)
             .switchIfEmpty { throw BadRequestException("피드가 존재하지 않습니다.") }
             .flatMap { feedRepository.deleteByIdAndStatus(feedId, "0") }
-//            .flatMap { Mono.just(true) }
 
     override fun clap(feedId: Long, userId: String): Mono<Boolean> =
         feedRepository.findByIdWithContentAndClap(feedId)
