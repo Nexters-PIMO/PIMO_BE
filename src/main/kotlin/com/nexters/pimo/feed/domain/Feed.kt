@@ -1,6 +1,7 @@
 package com.nexters.pimo.feed.domain
 
 import com.nexters.pimo.feed.application.dto.FeedDto
+import com.nexters.pimo.feed.application.dto.UserForFeedDto
 import jakarta.persistence.*
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
@@ -28,6 +29,12 @@ data class Feed(
     val updatedAt: LocalDateTime = LocalDateTime.now(),
 
     @Transient
+    var userNickName: String = "",
+
+    @Transient
+    var userProfileImgUrl: String = "",
+
+    @Transient
     var contents: List<Content> = listOf(),
 
     @Transient
@@ -35,7 +42,7 @@ data class Feed(
 ) {
     fun toDto(userId: String? = null) = FeedDto(
         id = this.id,
-        userId = this.userId,
+        user = UserForFeedDto(this.userId, this.userNickName, this.userProfileImgUrl),
         status = this.status,
         createdAt = this.createdAt.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")),
         clapCount = this.claps.count(),
@@ -43,3 +50,4 @@ data class Feed(
         contents = this.contents.map { it.toDto() }
     )
 }
+
