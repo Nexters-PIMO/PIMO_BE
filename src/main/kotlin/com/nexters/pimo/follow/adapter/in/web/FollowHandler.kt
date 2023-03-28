@@ -10,7 +10,6 @@ import com.nexters.pimo.follow.application.dto.FollowCntDto
 import com.nexters.pimo.follow.application.port.`in`.DeleteUseCase
 import com.nexters.pimo.follow.application.port.`in`.FindUseCase
 import com.nexters.pimo.follow.application.port.`in`.RegisterUseCase
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -60,7 +59,7 @@ class FollowHandler(
      * @since 2023.02.18
      */
     fun count(request: ServerRequest): Mono<ServerResponse> =
-        findUseCase.count(request.userId())
+        findUseCase.count(request.queryParam("targetUserId").orElse(request.userId()))
             .flatMap { BaseResponse().success(it) }
 
     /**
@@ -88,7 +87,7 @@ class FollowHandler(
         when(request.pathVariable("target")) {
             "follower" -> {
                 findUseCase.follower(
-                    request.userId(),
+                    request.queryParam("targetUserId").orElse(request.userId()),
                     request.queryParam("sort").orElse(CommCode.DEFAULT_SORT_OPTION),
                     request.queryParam("start").orElse(CommCode.DEFAULT_PAGING_START).toInt(),
                     request.queryParam("size").orElse(CommCode.DEFAULT_PAGING_SIZE).toInt()
@@ -96,7 +95,7 @@ class FollowHandler(
             }
             "followee" -> {
                 findUseCase.followee(
-                    request.userId(),
+                    request.queryParam("targetUserId").orElse(request.userId()),
                     request.queryParam("sort").orElse(CommCode.DEFAULT_SORT_OPTION),
                     request.queryParam("start").orElse(CommCode.DEFAULT_PAGING_START).toInt(),
                     request.queryParam("size").orElse(CommCode.DEFAULT_PAGING_SIZE).toInt()
@@ -104,7 +103,7 @@ class FollowHandler(
             }
             "followforfollow" -> {
                 findUseCase.followForFollow(
-                    request.userId(),
+                    request.queryParam("targetUserId").orElse(request.userId()),
                     request.queryParam("sort").orElse(CommCode.DEFAULT_SORT_OPTION),
                     request.queryParam("start").orElse(CommCode.DEFAULT_PAGING_START).toInt(),
                     request.queryParam("size").orElse(CommCode.DEFAULT_PAGING_SIZE).toInt()

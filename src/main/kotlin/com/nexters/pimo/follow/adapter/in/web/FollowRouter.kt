@@ -100,6 +100,9 @@ class FollowRouter(
                     tags = ["친구관리"],
                     summary = "친구 목록수 조회",
                     operationId = "count",
+                    parameters = [
+                        Parameter(name = "targetUserId", description = "상대방 사용자ID", example = "admin", required = false),
+                    ],
                     responses = [
                         // 공통 Response(BaseResponse)객체를 노출하기 위해 사용, responseCode는 swagger에서 맨 앞단에 노출시키기 위해 "0" 고정
                         ApiResponse(
@@ -126,6 +129,7 @@ class FollowRouter(
                     summary = "나만 친구 목록조회",
                     operationId = "list",
                     parameters = [
+                        Parameter(name = "targetUserId", description = "상대방 사용자ID", example = "admin", required = false),
                         Parameter(
                             name = "sort",
                             description = "정렬 방식 구분",
@@ -163,6 +167,7 @@ class FollowRouter(
                     summary = "상대방만 친구 목록조회",
                     operationId = "list",
                     parameters = [
+                        Parameter(name = "targetUserId", description = "상대방 사용자ID", example = "admin", required = false),
                         Parameter(
                             name = "sort",
                             description = "정렬 방식 구분",
@@ -200,6 +205,7 @@ class FollowRouter(
                     summary = "서로 친구 목록조회",
                     operationId = "list",
                     parameters = [
+                        Parameter(name = "targetUserId", description = "상대방 사용자ID", example = "admin", required = false),
                         Parameter(
                             name = "sort",
                             description = "정렬 방식 구분",
